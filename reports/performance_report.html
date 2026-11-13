@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Pruebas de Rendimiento - Aplicación Bancaria</title>
+    <style>
+        :root {
+            --primary-color: #1a5f7a;
+            --secondary-color: #159895;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --bg-light: #f8f9fa;
+            --text-dark: #2c3e50;
+            --border-color: #dee2e6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        
+        header .meta-info {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .card.success { border-left-color: var(--success-color); }
+        .card.warning { border-left-color: var(--warning-color); }
+        .card.danger { border-left-color: var(--danger-color); }
+        
+        .card h3 {
+            font-size: 0.9em;
+            text-transform: uppercase;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        
+        .card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+        
+        .card .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .status.pass { background-color: #d5f4e6; color: #1e8449; }
+        .status.fail { background-color: #fadbd8; color: #c0392b; }
+        .status.warn { background-color: #fdebd0; color: #d68910; }
+        
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .section h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .metric-bar {
+            height: 25px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        
+        .metric-bar .fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        
+        .fill.green { background-color: var(--success-color); }
+        .fill.yellow { background-color: var(--warning-color); }
+        .fill.red { background-color: var(--danger-color); }
+        
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .test-scenario {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--secondary-color);
+        }
+        
+        .test-scenario h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .tag {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .tag.load { background-color: #d6eaf8; color: #2471a3; }
+        .tag.stress { background-color: #fadbd8; color: #c0392b; }
+        .tag.volume { background-color: #d5f5e3; color: #1e8449; }
+        .tag.stability { background-color: #fdebd0; color: #d68910; }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Reporte de Pruebas de Rendimiento</h1>
+            <p>Aplicación Bancaria - Sistema de Gestión de Transacciones</p>
+            <div class="meta-info">
+                <span><strong>Fecha de ejecución:</strong> 2024-01-15 14:30:00</span>
+                <span><strong>Entorno:</strong> Staging</span>
+                <span><strong>Versión:</strong> 2.4.1</span>
+                <span><strong>Duración total:</strong> 4h 23m</span>
+            </div>
+        </header>
+
+        <div class="summary-cards">
+            <div class="card success">
+                <h3>Estado General</h3>
+                <div class="value">APROBADO</div>
+                <span class="status pass">4 de 5 escenarios pasaron</span>
+            </div>
+            <div class="card">
+                <h3>Requests Totales</h3>
+                <div class="value">1,247,832</div>
+                <span class="status pass">Tasa de éxito: 99.2%</span>
+            </div>
+            <div class="card warning">
+                <h3>Tiempo Promedio</h3>
+                <div class="value">487 ms</div>
+                <span class="status warn">Umbral: 500ms (cerca)</span>
+            </div>
+            <div class="card success">
+                <h3>Throughput</h3>
+                <div class="value">87 req/s</div>
+                <span class="status pass">Meta: 50 req/s</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Resumen Ejecutivo</h2>
+            <p>Las pruebas de rendimiento se ejecutaron exitosamente en el entorno de staging. El sistema demostró capacidad para manejar la carga esperada de 1000 usuarios concurrentes con tiempos de respuesta dentro de los umbrales establecidos. Se identificó una degradación de rendimiento en el escenario de estrés máximo que requiere optimización.</p>
+        </div>
+
+        <div class="section">
+            <h2>Métricas por Escenario de Prueba</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Escenario</th>
+                        <th>Tipo</th>
+                        <th>Usuarios</th>
+                        <th>Requests</th>
+                        <th>Tiempo Prom.</th>
+                        <th>P95</th>
+                        <th>P99</th>
+                        <th>Errores</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Carga Normal</td>
+                        <td><span class="tag load">Load</span></td>
+                        <td>100</td>
+                        <td>523,450</td>
+                        <td>245 ms</td>
+                        <td>380 ms</td>
+                        <td>520 ms</td>
+                        <td>0.1%</td>
+                        <td><span class="status pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td>Pico de Transacciones</td>
+                        <td><span class="tag load">Load</span></td>
+                        <td>500</td>
+                        <td>412,890</td>
+                        <td>487 ms</td>
+                        <td>780 ms</td>
+                        <td>1,120 ms</td>
+                        <td>0.8%</td>
+                        <td><span class="status pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td>Estrés Máximo</td>
+                        <td><span class="tag stress">Stress</span></td>
+                        <td>1,000</td>
+                        <td>234,120</td>
+                        <td>1,245 ms</td>
+                        <td>2,100 ms</td>
+                        <td>3,450 ms</td>
+                        <td>2.3%</td>
+                        <td><span class="status fail">FAIL</span></td>
+                    </tr>
+                    <tr>
+                        <td>Volumen de Datos</td>
+                        <td><span class="tag volume">Volume</span></td>
+                        <td>200</td>
+                        <td>67,892</td>
+                        <td>312 ms</td>
+                        <td>490 ms</td>
+                        <td>680 ms</td>
+                        <td>0.2%</td>
+                        <td><span class="status pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td>Estabilidad (8h)</td>
+                        <td><span class="tag stability">Stability</span></td>
+                        <td>50</td>
+                        <td>9,480</td>
+                        <td>198 ms</td>
+                        <td>290 ms</td>
+                        <td>410 ms</td>
+                        <td>0.05%</td>
+                        <td><span class="status pass">PASS</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Análisis de Recursos del Sistema</h2>
+            
+            <h3>Uso de CPU</h3>
+            <div class="metric-bar">
+                <div class="fill yellow" style="width: 78%;"></div>
+            </div>
+            <p>Promedio: 78% | Máximo: 92% | Umbral: 80%</p>
+            
+            <h3 style="margin-top: 20px;">Uso de Memoria</h3>
+            <div class="metric-bar">
+                <div class="fill green" style="width: 65%;"></div>
+            </div>
+            <p>Promedio: 65% | Máximo: 78% | Umbral: 85%</p>
+            
+            <h3 style="margin-top: 20px;">Uso de Base de Datos</h3>
+            <div class="metric-bar">
+                <div class="fill green" style="width: 52%;"></div>
+            </div>
+            <p>Promedio: 52% | Máximo: 71% | Umbral: 80%</p>
+        </div>
+
+        <div class="section">
+            <h2>Detalle de Endpoints Probados</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Método</th>
+                        <th>Calls</th>
+                        <th>Avg Time</th>
+                        <th>Min</th>
+                        <th>Max</th>
+                        <th>Err %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>/api/accounts/{id}</td>
+                        <td>GET</td>
+                        <td>234,567</td>
+                        <td>156 ms</td>
+                        <td>45 ms</td>
+                        <td>890 ms</td>
+                        <td>0.02%</td>
+                    </tr>
+                    <tr>
+                        <td>/api/transactions</td>
+                        <td>POST</td>
+                        <td>456,789</td>
+                        <td>312 ms</td>
+                        <td>89 ms</td>
+                        <td>1,450 ms</td>
+                        <td>0.15%</td>
+                    </tr>
+                    <tr>
+                        <td>/api/transactions/search</td>
+                        <td>POST</td>
+                        <td>189,234</td>
+                        <td>478 ms</td>
+                        <td>120 ms</td>
+                        <td>2,100 ms</td>
+                        <td>0.32%</td>
+                    </tr>
+                    <tr>
+                        <td>/api/accounts/balance</td>
+                        <td>GET</td>
+                        <td>167,890</td>
+                        <td>234 ms</td>
+                        <td>67 ms</td>
+                        <td>980 ms</td>
+                        <td>0.08%</td>
+                    </tr>
+                    <tr>
+                        <td>/api/transfers</td>
+                        <td>POST</td>
+                        <td>98,765</td>
+                        <td>567 ms</td>
+                        <td>145 ms</td>
+                        <td>2,890 ms</td>
+                        <td>0.45%</td>
+                    </tr>
+                    <tr>
+                        <td>/api/reports/generate</td>
+                        <td>POST</td>
+                        <td>45,678</td>
+                        <td>1,890 ms</td>
+                        <td>890 ms</td>
+                        <td>8,900 ms</td>
+                        <td>1.2%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Hallazgos y Recomendaciones</h2>
+            
+            <div class="test-scenario">
+                <h4>⚠️ Hallazgo 1: Degradación bajo estrés máximo</h4>
+                <p>El tiempo de respuesta promedio supera el umbral establecido (1,245ms vs 1,000ms) cuando el sistema opera con más de 800 usuarios concurrentes. La tasa de errores aumenta al 2.3%.</p>
+                <div class="tags">
+                    <span class="tag stress">Stress Test</span>
+                    <span class="tag">Alta Prioridad</span>
+                </div>
+            </div>
+            
+            <div class="test-scenario">
+                <h4>ℹ️ Hallazgo 2: Endpoint de reportes con alta latencia</h4>
+                <p>El endpoint /api/reports/generate muestra latencias elevadas (promedio 1,890ms) que superan el umbral de 1,000ms. Se recomienda implementar caché o procesamiento asíncrono.</p>
+                <div class="tags">
+                    <span class="tag load">Load Test</span>
+                    <span class="tag">Media Prioridad</span>
+                </div>
+            </div>
+            
+            <div class="test-scenario">
+                <h4>✅ Hallazgo 3: Estabilidad operativa confirmada</h4>
+                <p>La prueba de estabilidad de 8 horas demuestra que el sistema mantiene un rendimiento consistente sin degradación progresiva ni fugas de memoria.</p>
+                <div class="tags">
+                    <span class="tag stability">Stability Test</span>
+                    <span class="tag">Éxito</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Acciones Recomendadas</h2>
+            <ol style="margin-left: 20px; line-height: 2;">
+                <li><strong>Optimizar servicio de transferencias:</strong> Implementar pooling de conexiones optimizado y revisar queries de base de datos.</li>
+                <li><strong>Escalar horizontalmente:</strong> Agregar instancias del servicio de API bajo balanceador de carga para manejar picos.</li>
+                <li><strong>Implementar caché:</strong> Agregar Redis para cachear respuestas de endpoints de consulta frecuente.</li>
+                <li><strong>Procesamiento asíncrono:</strong> Migrar generación de reportes a cola de mensajes para procesamiento en background.</li>
+                <li><strong>Revisión de timeouts:</strong> Ajustar timeouts de base de datos y servicios externos para mejor manejo de cargas.</li>
+            </ol>
+        </div>
+
+        <footer>
+            <p>Reporte generado automáticamente por JMeter + Maven Plugin</p>
+            <p>Proyecto: performance-tests v1.0.0 | Fecha de generación: 2024-01-15 18:45:00</p>
+        </footer>
+    </div>
+</body>
+</html>
